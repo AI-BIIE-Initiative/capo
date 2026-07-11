@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "benchmark_registry.schema.json",
+  "title": "Benchmark Entry",
+  "description": "Schema for a single row in registry_src/benchmarks.jsonl",
+  "type": "object",
+  "required": ["registry_id", "task", "metric", "value", "source", "benchmark_date"],
+  "additionalProperties": false,
+  "properties": {
+    "registry_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]+$"
+    },
+    "task": {
+      "type": "string",
+      "description": "Benchmark task name (e.g. 'thermostability', 'fluorescence', 'secondary_structure')"
+    },
+    "dataset": {
+      "type": ["string", "null"],
+      "description": "Dataset or split used (e.g. 'FLIP', 'ProteinGym', 'TAPE')"
+    },
+    "metric": {
+      "type": "string",
+      "description": "Evaluation metric (e.g. 'spearman_r', 'accuracy', 'ndcg')"
+    },
+    "value": {
+      "type": "number"
+    },
+    "higher_is_better": {
+      "type": "boolean",
+      "default": true
+    },
+    "source": {
+      "type": "string",
+      "description": "Paper, URL, or internal experiment ID"
+    },
+    "benchmark_date": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+    "evaluation_notes": {
+      "type": ["string", "null"]
+    }
+  }
+}

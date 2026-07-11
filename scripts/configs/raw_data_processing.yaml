@@ -1,0 +1,132 @@
+# ---------------------------------------------------------------------------
+# SSH credentials — required for Lambda instance access
+# ---------------------------------------------------------------------------
+key_path: ~/.ssh/lambda_key   # SSH private key for Lambda instances
+ssh_key_name: your_lambda_key_name  # Key name registered in Lambda Cloud account  
+
+# ---------------------------------------------------------------------------
+# Data paths (local machine)
+# ---------------------------------------------------------------------------
+# Directory containing all paired-end FASTQ files (*_R1.fastq.gz / *_R2.fastq.gz).
+# The agent will scan this directory and infer the experimental structure
+# (species, date, sort gates, lib1/lib2 assignments) from filenames.
+input_dir:  data/human_raw
+
+# HuggingFace Hub dataset ref (alternative to rsyncing from local disk).
+# When set, the agent lists filenames from the Hub for discovery (Step 1) and
+# downloads directly to the Lambda instance via huggingface-cli (Step 4).
+# Lambda's datacenter bandwidth makes this far faster than a local rsync for
+# large datasets (~25 GB downloads in minutes vs. hours over a slow uplink).
+
+# Set to null to use the local input_dir via rsync (default behaviour).
+# example: theoschiff/human-raw-fastq
+input_hf_ref: null
+
+# Local directory where the final labeled CSV and run artifacts will be written.
+output_dir: capo/runs/data-processing
+
+# ---------------------------------------------------------------------------
+# Budget (shared across systems in harness mode)
+# ---------------------------------------------------------------------------
+max_cost_usd:       40.0
+max_runtime_hours:  15.0
+
+# ---------------------------------------------------------------------------
+# Instance type
+# Leave null to let the agent pick the best CPU-heavy type with >= 8 vCPUs.
+# ---------------------------------------------------------------------------
+instance_type: null
+
+# ---------------------------------------------------------------------------
+# Post-processing behaviour
+# ---------------------------------------------------------------------------
+terminate_after: false
+
+# ---------------------------------------------------------------------------
+# Agent settings (used by the legacy single-system path — when `systems:`
+# below is absent). In harness mode each entry under `systems:` provides
+# its own `model_name` and `max_turns`, and these top-level values are
+# ignored.
+# ---------------------------------------------------------------------------
+model_name: claude-opus-4-8
+max_turns:  500
+
+# ---------------------------------------------------------------------------
+# Run control (optional)
+# ---------------------------------------------------------------------------
+# Set run_id to reuse an existing local_run_dir for a single-system run, or
+# eval_run_id for harness mode. Leave null for fresh IDs.
+run_id:      null
+eval_run_id: null
+
+# ===========================================================================
+# Leakage-isolated evaluation harness
+# ===========================================================================
+#
+# When `systems:` is present, run_raw_data_processing.py routes through
+# EvaluationHarnessOrchestrator: each system runs preprocessing independently,
+# its outputs are frozen + hashed, then a deterministic Stage-2 phase loads
+# the held-out gold set and produces the result tables.
+#
+# Comment the `systems:` block out (or remove it) to fall back to the legacy
+# single-CAPO `DataProcessingOrchestrator` path.
+
+systems:
+  - name:    CAPO
+    kind:    capo
+    setting: budget_matched
+    model_name: claude-opus-4-8
+    max_turns:  500
+  - name:    General Coding Agent
+    kind:    general_coding_agent
+    setting: budget_matched
+    model_name: claude-opus-4-8
+    max_turns:  400
+
+# ---------------------------------------------------------------------------
+# Pre-registered evaluation contract
+# ---------------------------------------------------------------------------
+# This block is frozen at the top of the run. It must NOT be modified after
+# the candidate datasets are written.
+evaluation:
+  primary_metric: macro_annotation_exact_match
+  rng_seed:       0
+
+  gold_set:
+    dataset_ref:      theoschiff/ace2_binding
+    split:            test
+    single_label_only: true
+    # Restrict to a subset of species in the gold set. Set to null to evaluate
+    # against any species the agents preprocess that also appears in gold.
+    species_filter: null
+    # Optional override — if null, GoldEvaluator infers the integer label
+    # columns from the dataset schema. Set explicitly when in doubt.
+    species_columns: null
+
+  # Stable matching keys — locked in at run start. Changing these after gold
+  # results are seen is a leakage violation (matching bias).
+  match_keys:
+    - species_normalized
+    - sequence
+
+  # Error taxonomy — used by error_analysis.csv. Extending this list during
+  # evaluation is a rule-tuning leak.
+  error_taxonomy:
+    - species_misnormalization
+    - label_flip
+    - sequence_mismatch
+    - duplicate_collision
+    - missing_required_field
+    - invalid_schema
+    - unmatched_gold
+    - unmatched_processed
+    - ambiguous_match
+    - ambiguous_annotation
+    - agent_runtime_failure
+
+  statistical_tests:
+    bootstrap_n: 1000
+    paired_metrics:
+      - annotation_exact_match
+      - label_correct
+      - sequence_exact_match

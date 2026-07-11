@@ -1,0 +1,103 @@
+[project]
+name = "capo"
+version = "0.1.0"
+description = "Compute-Aware Automated Protein Optimization"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    # HTTP & APIs
+    "httpx>=0.28.1",
+    "requests>=2.31.0",
+    "flask>=3.0.0",
+    # Agent / platform deps
+    "mcp[cli]>=1.26.0",
+    "openai>=2.16.0",
+    "python-dotenv>=1.2.1",
+    # Data science essentials
+    "numpy>=2.4.1",
+    "pandas>=3.0.0",
+    "scipy>=1.15.0",
+    "scikit-learn>=1.6.0",
+    # Plotting
+    "matplotlib>=3.10.8",
+    "seaborn>=0.13.2",
+    # ML / Transformers
+    "torch>=2.10.0",
+    "transformers>=5.2.0",
+    # Math & symbolic computation
+    "sympy>=1.12",
+    # Data formats
+    "pyyaml>=6.0",
+    "toml>=0.10.2",
+    # Utilities
+    "tqdm>=4.66.0",
+    "python-dateutil>=2.8.2",
+    "pendulum>=3.0.0",
+    "regex>=2023.0.0",
+    # For state serialization
+    "dill>=0.3.7",
+    "msgspec>=0.18",
+    # Bioinformatics
+    "biopython>=1.84",
+    # Claude agent SDK
+    # >=0.1.49: AgentDefinition gained the `skills=` kwarg used in agent_runner.SUBAGENTS.
+    # Older versions (e.g. 0.1.41) crash the MCP servers on import.
+    "claude-agent-sdk>=0.1.49",
+    # HuggingFace Hub (Spaces, buckets, volumes for trackio dashboards).
+    # Need >=1.15.0 for Volume / create_bucket / set_space_volumes.
+    "huggingface_hub>=1.15.0",
+    "pyarrow>=24.0.0",
+    "datasets>=5.0.0",
+    # CLI presentation layer (src/capo/cli) — `capo` entry point.
+    "rich>=13.7.0",
+    "typer>=0.12.0",
+    "prompt-toolkit>=3.0.0",
+]
+
+[project.scripts]
+# `capo` launches the CLI; equivalent to `python scripts/run_fine_tuning.py`
+# but with the interactive questionnaire + Rich progress display.
+capo = "capo.cli.app:main"
+
+[project.optional-dependencies]
+openai = ["openai>=1.0.0"]
+anthropic = ["anthropic>=0.40.0"]
+azure = ["openai>=1.0.0"]
+dev = ["pytest", "ruff", "mypy"]
+
+
+[tool.autoimmunolab.apt]
+packages = [
+    "build-essential",
+    "git",
+    "curl",
+    "wget",
+    "libopenblas-dev",
+    "liblapack-dev",
+
+    # MMseqs2 — external binary required for sequence-identity (homology-safe)
+    # clustering in skills/clustering/mmseqs2. The PyPI `mmseqs2` package does
+    # NOT ship the binary.
+    "mmseqs2",
+
+    # Common runtime deps (helps wheels/imports in minimal images)
+    "ca-certificates",
+    "pkg-config",
+    "libffi-dev",
+    "libssl-dev",
+
+    # Matplotlib runtime deps for many minimal containers
+    "libfreetype6-dev",
+    "libpng-dev",
+    "fonts-dejavu-core",
+]
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+capo = ["prompts/**/*.md"]

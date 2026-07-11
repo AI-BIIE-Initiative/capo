@@ -1,0 +1,54 @@
+{"alias": "esm2 650m", "registry_id": "esm2_t33_650m", "notes": null}
+{"alias": "esm2-650m", "registry_id": "esm2_t33_650m", "notes": null}
+{"alias": "facebook esm2 650m", "registry_id": "esm2_t33_650m", "notes": null}
+{"alias": "esm2 default", "registry_id": "esm2_t33_650m", "notes": "Canonical default ESM-2"}
+{"alias": "esm2 3b", "registry_id": "esm2_t36_3b", "notes": null}
+{"alias": "esm2-3b", "registry_id": "esm2_t36_3b", "notes": null}
+{"alias": "facebook esm2 3b", "registry_id": "esm2_t36_3b", "notes": null}
+{"alias": "esm2 15b", "registry_id": "esm2_t48_15b", "notes": null}
+{"alias": "esm2 8m", "registry_id": "esm2_t6_8m", "notes": null}
+{"alias": "esm2 35m", "registry_id": "esm2_t12_35m", "notes": null}
+{"alias": "esm2 150m", "registry_id": "esm2_t30_150m", "notes": null}
+{"alias": "esm1v", "registry_id": "esm1v_650m", "notes": "Defaults to model 1 of 5-ensemble"}
+{"alias": "esm-1v", "registry_id": "esm1v_650m", "notes": null}
+{"alias": "esm1v 650m", "registry_id": "esm1v_650m", "notes": null}
+{"alias": "esm cambrian", "registry_id": "esmc_300m", "notes": null}
+{"alias": "esmc", "registry_id": "esmc_300m", "notes": "Defaults to 300M variant"}
+{"alias": "esmc 300m", "registry_id": "esmc_300m", "notes": null}
+{"alias": "esm3", "registry_id": "esm3_sm_open", "notes": "Defaults to open 1.4B"}
+{"alias": "esm3 small open", "registry_id": "esm3_sm_open", "notes": null}
+{"alias": "esm3 1.4b", "registry_id": "esm3_sm_open", "notes": null}
+{"alias": "evolutionaryscale esm3", "registry_id": "esm3_sm_open", "notes": null}
+{"alias": "esmfold", "registry_id": "esmfold_v1", "notes": null}
+{"alias": "esm fold", "registry_id": "esmfold_v1", "notes": null}
+{"alias": "esm inverse folding", "registry_id": "esm_if1", "notes": null}
+{"alias": "esm-if1", "registry_id": "esm_if1", "notes": null}
+{"alias": "esm if1", "registry_id": "esm_if1", "notes": null}
+{"alias": "boltzgen", "registry_id": "boltzgen_1", "notes": null}
+{"alias": "boltz 2", "registry_id": "boltz_2", "notes": null}
+{"alias": "boltz2", "registry_id": "boltz_2", "notes": null}
+{"alias": "la proteina", "registry_id": "nv_la_proteina", "notes": null}
+{"alias": "nvidia la proteina", "registry_id": "nv_la_proteina", "notes": null}
+{"alias": "nv la proteina", "registry_id": "nv_la_proteina", "notes": null}
+{"alias": "dplm 150m", "registry_id": "dplm_150m", "notes": null}
+{"alias": "dplm 650m", "registry_id": "dplm_650m", "notes": null}
+{"alias": "dplm 3b", "registry_id": "dplm_3b", "notes": null}
+{"alias": "dplm2", "registry_id": "dplm2_150m", "notes": "Defaults to 150M"}
+{"alias": "dplm2 150m", "registry_id": "dplm2_150m", "notes": null}
+{"alias": "prot t5", "registry_id": "prot_t5_xl_enc", "notes": "Defaults to encoder-only for embedding use"}
+{"alias": "prot t5 xl", "registry_id": "prot_t5_xl", "notes": null}
+{"alias": "prot bert", "registry_id": "prot_bert", "notes": null}
+{"alias": "protbert", "registry_id": "prot_bert", "notes": null}
+{"alias": "ankh3", "registry_id": "ankh3_large", "notes": "Defaults to large"}
+{"alias": "ankh3 large", "registry_id": "ankh3_large", "notes": null}
+{"alias": "ankh3 xl", "registry_id": "ankh3_xl", "notes": null}
+{"alias": "saprot", "registry_id": "saprot_650m", "notes": null}
+{"alias": "saprot 650m", "registry_id": "saprot_650m", "notes": null}
+{"alias": "tranception", "registry_id": "tranception", "notes": null}
+{"alias": "protgpt2", "registry_id": "protgpt2", "notes": null}
+{"alias": "prot gpt2", "registry_id": "protgpt2", "notes": null}
+{"alias": "nucleotide transformer", "registry_id": "nucleotide_transformer_v2_500m", "notes": "Defaults to v2 500M multi-species"}
+{"alias": "nt v2 500m", "registry_id": "nucleotide_transformer_v2_500m", "notes": null}
+{"alias": "biomedbert", "registry_id": "biomedbert_base", "notes": null}
+{"alias": "pubmedbert", "registry_id": "biomedbert_base", "notes": "Same model, different common name"}
+{"alias": "biobert", "registry_id": "biobert_base", "notes": null}

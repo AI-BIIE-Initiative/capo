@@ -1,0 +1,52 @@
+# boltz2-cuda.lock — known-good Boltz-2 GPU environment.
+#
+# Proven on NVIDIA A100 SXM4 40 GB, CUDA 12 (run ft-boltz2-affinity-jglaser-smoke,
+# 2026-06): with this exact set, `boltz predict` ran the triangular-multiply kernel
+# at ~23 s/complex. Every version below is evidence-backed from that run's artifacts
+# (stdout.log, reports/handoff.json::probe_verification, boltz_train_val.log).
+#
+# WHY THIS FILE EXISTS: `pip install boltz` silently omits the runtime GPU kernel
+# (cuequivariance-ops-torch-cu12) and tolerates present-but-too-old platformdirs /
+# networkx, so a "successful" install still crashes minutes into the first GPU
+# forward pass. Re-deriving versions per run reintroduces that crash. Install from
+# this lock instead, and COPY these lines into the run's requirements.txt rather
+# than inventing versions:
+#
+#     pip install -r references/boltz2-cuda.lock
+#
+# Do NOT relax a pinned (==) line without a fresh proven run. The inline "why" on
+# each pin is the institutional memory of the incident — keep the comments.
+
+--extra-index-url https://pypi.nvidia.com   # source of the cuequivariance-ops-* wheels; without it they are unfindable
+
+# --- GPU-kernel quartet: exact-pin (ABI/runtime-coupled — the root-cause set) ---
+cuequivariance==0.10.0                  # base package
+cuequivariance-torch==0.10.0            # provides cuequivariance_torch (lazy kernel import)
+cuequivariance-ops-cu12==0.10.0        # provides cuequivariance_ops (ops infrastructure)
+cuequivariance-ops-torch-cu12==0.10.0  # provides cuequivariance_ops_torch — the runtime kernel; NOT pulled by `pip install boltz`
+
+# --- transitive deps that are present-but-too-old on a default image ---
+platformdirs==4.10.0                    # cuequivariance_ops_torch uses the ensure_exists kwarg (added in 3.0); default 2.5.x is too old
+networkx>=3.0                           # older networkx uses np.int (removed in numpy>=1.24), which blocks the cuequivariance_torch import
+
+# --- ABI-sensitive core: exact-pin / tight band ---
+torch==2.7.0                            # CUDA build proven here; the cuequivariance ops wheels are torch-ABI-coupled
+pytorch-lightning>=2.5,<2.6            # boltz2 ckpt was produced with 2.5.0.post0; band avoids a silent major bump
+numpy>=1.24                             # >=1.24 removes np.int (the networkx trigger); keep the floor
+rdkit>=2023.3.1                         # SMILES standardization; 2026.3.3 proven
+
+# --- boltz + stable libs ---
+# NOTE: pin boltz to the EXACT release that produced the proven embeddings once it
+# is captured from a `pip freeze` of that instance (drift policy). Left as a floor
+# only because that exact version is not yet recorded — do not fabricate it.
+boltz>=0.4.0                            # the model package; TODO: pin == from a proven `pip freeze`
+datasets>=2.14.0
+pandas>=2.0.0
+pyarrow>=12.0.0                         # parquet load; its absence is what killed the early OLD instance
+scipy>=1.10.0
+scikit-learn>=1.3.0
+matplotlib>=3.7.0
+pyyaml>=6.0
+huggingface_hub>=0.19.0
+trackio>=0.1.0
+tqdm>=4.65.0

@@ -1,0 +1,170 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "model_registry.schema.json",
+  "title": "Protein Model Registry Entry",
+  "description": "Schema for a single row in registry_src/models.jsonl",
+  "type": "object",
+  "required": [
+    "registry_id", "hf_repo_id", "display_name", "family",
+    "category", "architecture_type",
+    "input_modalities", "output_modalities", "conditioning_modalities",
+    "primary_tasks", "secondary_tasks",
+    "size_bucket", "compute_tier",
+    "supports_cpu_inference", "single_gpu_feasible", "multi_gpu_preferred",
+    "license_family", "commercial_use", "gated", "open_weights",
+    "status", "maturity", "last_verified",
+    "short_description", "selection_tags", "exclusion_tags"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "registry_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]+$",
+      "description": "Unique snake_case identifier"
+    },
+    "hf_repo_id": {
+      "type": "string",
+      "description": "HuggingFace Hub repo ID (org/model)"
+    },
+    "display_name": { "type": "string" },
+    "family": { "type": "string" },
+    "subfamily": { "type": ["string", "null"] },
+    "category": {
+      "type": "string",
+      "enum": [
+        "protein_representation_model",
+        "protein_sequence_generator",
+        "protein_sequence_structure_generator",
+        "protein_diffusion_generator",
+        "protein_structure_predictor",
+        "protein_inverse_folding_model",
+        "protein_fitness_model",
+        "nucleotide_language_model",
+        "biomedical_text_model"
+      ]
+    },
+    "architecture_type": {
+      "type": "string",
+      "enum": [
+        "encoder_mlm",
+        "encoder_decoder",
+        "decoder_only",
+        "discrete_diffusion",
+        "multimodal_diffusion",
+        "flow_matching",
+        "structure_prediction",
+        "inverse_folding",
+        "retrieval_autoregressive"
+      ]
+    },
+    "input_modalities": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["protein_sequence", "protein_structure", "protein_function", "nucleotide_sequence", "biomedical_text", "small_molecule"]
+      },
+      "minItems": 1
+    },
+    "output_modalities": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["token_logits", "embeddings", "protein_sequence", "protein_structure", "binding_affinity", "fitness_score"]
+      },
+      "minItems": 1
+    },
+    "conditioning_modalities": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["protein_sequence", "protein_structure", "protein_function", "nucleotide_sequence", "biomedical_text", "small_molecule"]
+      }
+    },
+    "primary_tasks": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "embedding", "masked_reconstruction", "sequence_generation",
+          "controlled_generation", "folding", "inverse_folding",
+          "motif_scaffolding", "binder_design", "fitness_prediction",
+          "variant_effect_prediction", "complex_prediction",
+          "binding_affinity_prediction", "nucleotide_representation",
+          "biomedical_nlp", "finetuning"
+        ]
+      },
+      "minItems": 1
+    },
+    "secondary_tasks": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "embedding", "masked_reconstruction", "sequence_generation",
+          "controlled_generation", "folding", "inverse_folding",
+          "motif_scaffolding", "binder_design", "fitness_prediction",
+          "variant_effect_prediction", "complex_prediction",
+          "binding_affinity_prediction", "nucleotide_representation",
+          "biomedical_nlp", "finetuning"
+        ]
+      }
+    },
+    "parameter_count": { "type": ["integer", "null"], "minimum": 0 },
+    "size_bucket": {
+      "type": "string",
+      "enum": ["tiny", "small", "medium", "large", "xlarge", "frontier"]
+    },
+    "compute_tier": {
+      "type": "string",
+      "enum": ["cpu_ok", "single_gpu_lowmem", "single_gpu_midmem", "single_gpu_highmem", "multi_gpu", "api_only"]
+    },
+    "compute_override_reason": { "type": ["string", "null"] },
+    "supports_cpu_inference": { "type": "boolean" },
+    "single_gpu_feasible": { "type": "boolean" },
+    "multi_gpu_preferred": { "type": "boolean" },
+    "quantized_variants_known": { "type": "boolean" },
+    "throughput_notes": { "type": ["string", "null"] },
+    "license_id": { "type": ["string", "null"] },
+    "license_family": {
+      "type": "string",
+      "enum": ["mit", "apache2", "cc_by", "cc_by_nc", "research_only", "custom", "unknown"]
+    },
+    "commercial_use": {
+      "type": "string",
+      "enum": ["yes", "likely_yes", "non_commercial_only", "research_only", "unknown"]
+    },
+    "gated": { "type": "boolean" },
+    "approval_required": { "type": "boolean" },
+    "open_weights": {
+      "type": "string",
+      "enum": ["yes", "yes_gated", "partial", "no", "unknown"]
+    },
+    "source_available": { "type": "boolean" },
+    "notes_license": { "type": ["string", "null"] },
+    "status": {
+      "type": "string",
+      "enum": ["active", "legacy", "deprecated"]
+    },
+    "maturity": {
+      "type": "string",
+      "enum": ["established", "recent", "experimental"]
+    },
+    "last_verified": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+      "description": "ISO 8601 date"
+    },
+    "short_description": {
+      "type": "string",
+      "maxLength": 200
+    },
+    "selection_tags": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "exclusion_tags": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}

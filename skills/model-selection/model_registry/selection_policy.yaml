@@ -1,0 +1,108 @@
+---
+# Model Selection Policy
+# Used by model-selection/SKILL.md as the routing and ranking source of truth.
+# Edit this file to adjust priorities without touching the skill logic.
+
+default_output_count: 3
+always_include_budget_option: true
+always_include_frontier_option: true
+
+# Scoring weights (must sum to 1.0)
+weights:
+  task_fit: 0.40          # primary_tasks match
+  modality_fit: 0.20      # input/output/conditioning modality match
+  compute_fit: 0.15       # compute_tier within stated budget
+  openness_fit: 0.10      # open_weights + commercial_use alignment
+  maturity_score: 0.10    # established > recent > experimental
+  deployment_practicality: 0.05  # single_gpu_feasible, no gating, etc.
+
+# Penalties applied on top of the weighted score
+penalties:
+  gated: 0.20                    # gated=true and user wants frictionless
+  over_budget_compute: 0.25      # compute_tier exceeds stated budget
+  unknown_commercial_status: 0.15  # commercial_use=unknown when deployment is commercial
+  legacy_model: 0.10             # status=legacy or exclusion_tags contains prefer_*_over_this
+  non_commercial_commercial_deploy: 0.30  # commercial_use=non_commercial_only|research_only when commercial
+
+# Default assumed compute budget when none stated
+default_compute_budget: single_gpu_midmem
+
+# Task → ordered candidate list (first is preferred; apply compute filter after)
+routing:
+  embedding:
+    - esmc_300m          # strongest small embedder (non-commercial)
+    - esm2_t33_650m      # best commercial default
+    - saprot_650m        # structure-aware, if structure available
+    - ankh3_large        # multi-task pretrain, strong generalization
+    - prot_t5_xl_enc     # T5 ecosystem; slower but competitive
+    - esm2_t30_150m      # budget fallback
+
+  variant_effect_prediction:
+    - esm1v_650m         # purpose-built masked-marginal scorer
+    - tranception        # autoregressive + retrieval; best on fitness landscapes
+    - saprot_650m        # structure-aware variant effect if structure available
+    - esm2_t33_650m      # general fallback with PLL scoring
+    - esm2_t6_8m       # budget option with PLL scoring
+
+  fitness_prediction:
+    - tranception
+    - esm1v_650m
+    - esm2_t33_650m
+
+  sequence_generation:
+    - protgpt2           # established decoder-only baseline
+    - dplm_650m          # diffusion; better diversity
+    - esm3_sm_open       # generative multimodal (non-commercial)
+
+  controlled_generation:
+    - esm3_sm_open       # best open for structure/function conditioned
+    - dplm2_150m         # joint seq+structure, lighter
+    - nv_la_proteina     # frontier all-atom (gated, research-only)
+
+  folding:
+    - esmfold_v1         # fast MSA-free, open weights
+    - boltz_2            # better for complexes / affinity
+    - dplm2_150m         # lighter; co-designs sequence + structure
+
+  inverse_folding:
+    - esm_if1            # purpose-built, small, commercial
+    - dplm_650m          # diffusion-based; good diversity
+    - dplm2_150m         # joint seq+structure design
+
+  motif_scaffolding:
+    - dplm_650m
+    - dplm2_150m
+    - nv_la_proteina     # frontier all-atom scaffolding
+
+  binder_design:
+    - boltzgen_1         # purpose-built binder generator
+    - nv_la_proteina     # all-atom frontier design
+    - boltz_2            # complex prediction + affinity
+
+  complex_prediction:
+    - boltz_2
+    - boltzgen_1
+
+  binding_affinity_prediction:
+    - boltz_2
+
+  nucleotide_representation:
+    - nucleotide_transformer_v2_500m
+
+  biomedical_nlp:
+    - biomedbert_base    # MIT, PubMed abstracts
+    - biobert_base       # Apache 2.0, PubMed + PMC
+
+# Hard filter rules (applied before scoring)
+# Models failing any applicable rule are excluded from candidates.
+hard_filters:
+  - rule: task_mismatch
+    description: Exclude if task not in model primary_tasks or secondary_tasks
+  - rule: compute_over_budget
+    description: Exclude if compute_tier > stated budget (unless no candidate passes)
+  - rule: gated_frictionless
+    description: Exclude gated models when user explicitly requests frictionless access
+  - rule: commercial_restriction
+    description: Exclude non_commercial_only/research_only models when commercial deployment is implied
+  - rule: wrong_category
+    description: Exclude nucleotide_language_model and biomedical_text_model for protein tasks (and vice versa)

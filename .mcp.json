@@ -1,0 +1,25 @@
+{
+  "mcpServers": {
+    "lambda-repl": {
+      "command": "uv",
+      "args": ["run", "--", "python", "src/capo/mcp/server/lambda_mcp_server.py"],
+      "env": {
+        "PYTHONPATH": "src"
+      }
+    },
+    "local-repl": {
+      "command": "uv",
+      "args": ["run", "--", "python", "src/capo/mcp/server/local_repl_mcp_server.py"],
+      "env": {
+        "PYTHONPATH": "src"
+      }
+    },
+    "docker-repl": {
+      "command": "uv",
+      "args": ["run", "--", "python", "src/capo/mcp/server/docker_repl_mcp_server.py"],
+      "env": {
+        "PYTHONPATH": "src"
+      }
+    }
+  }
+}

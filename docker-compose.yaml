@@ -1,0 +1,9 @@
+version: "3.9"
+
+services:
+  repl:
+    build:
+      context: .
+      dockerfile: Dockerfile.repl
+    image: autoimmunolab-repl:latest
+    command: ["sleep", "infinity"]

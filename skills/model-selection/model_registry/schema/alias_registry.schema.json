@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "alias_registry.schema.json",
+  "title": "Model Alias Entry",
+  "description": "Schema for a single row in registry_src/aliases.jsonl",
+  "type": "object",
+  "required": ["alias", "registry_id"],
+  "additionalProperties": false,
+  "properties": {
+    "alias": {
+      "type": "string",
+      "description": "Natural-language alias or alternate name (lowercased)"
+    },
+    "registry_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]+$",
+      "description": "Corresponding registry_id in models.jsonl"
+    },
+    "notes": {
+      "type": ["string", "null"]
+    }
+  }
+}

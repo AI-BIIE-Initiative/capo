@@ -1,0 +1,29 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+.env
+
+# mac 
+.DS_Store
+
+logs/*
+
+.autoimmunolab_workspace/*
+
+# mcp logs
+src/capo/mcp/logs/*
+
+lambda/*
+decks/*
+runs/*
+
+# all baselines
+baselines/*
+plots/*

@@ -1,0 +1,133 @@
+# Fine-tuning config — scripts/run_fine_tuning.py
+# Usage: python scripts/run_fine_tuning.py --config scripts/configs/fine_tuning.yaml
+#
+# Environment: LAMBDA_API_KEY must be set for provisioning new instances.
+
+# ============================= Infrastructure =============================
+key_path: ~/.ssh/lambda_key               # SSH private key for Lambda instances
+ssh_key_name: your_lambda_key_name  # Key name registered in Lambda Cloud account
+ssh_alias: null                              # Attach directly to this SSH alias (skips instance discovery)
+gpu_preference: 1x A100                   # Preferred GPU tier, e.g. "1x GH200", "1x A100" - leave null to let the infra agent decide
+# A CAPO run uses at most ONE Lambda instance (multi-GPU is allowed via a larger
+# instance_type, never a second distinct instance). This flag only decides
+# reuse-vs-provision. Default true (recommended) reuses a compatible running
+# instance if already running -> cost-efficient! set false to always provision fresh.
+# Alias accepted: reuse_existing_instance, or infra.reuse_existing_instance.
+allow_reuse_existing: true
+# =========================================================================
+
+
+# ============================= Model / training =============================
+# model_id controls whether CAPO runs model selection at all:
+#   - exact HF repo id (facebook/esm2_t6_8M_UR50D) or registry id (esm2_t6_8m)
+#       → selection BYPASSED, used directly (availability validated at probe)
+#   - "custom" → bypass the registry; validate your path/import/config downstream
+#   - null / "auto" → infer from task, run the model-selector agent
+# architecture (optional): a family/architecture token (e.g. "esm2", "ankh")
+#   used only when model_id is null/auto. One registry match → bypass; several
+#   → the selector chooses among exactly those candidates.
+model_id: auto
+architecture: null
+fine_tune_strategy: linear-probe
+# dataset_ref accepts four forms (auto-detected — see capo.utils.dataset_source):
+#   - HF Hub id (theoschiff-biie/ace2_binding)  → downloaded on the instance (unchanged)
+#   - local file path (./data/assay.csv, ~/x.parquet, /abs/train.jsonl, *.fasta)
+#       → staged into runs/<run_id>/inputs/ and rsynced to the instance; probe/train
+#         load it as a local file. Relative paths resolve against the repo root.
+#   - URL (https://…/d.parquet, gs://…, s3://…)  → the agent fetches it into inputs/
+#         on the instance before the probe.
+#   - bare label (my-assay-panel)  → describe where to fetch it in task/task_file;
+#         the agent pulls it into inputs/ on the instance.
+# A local file with no train/val/test split is split deterministically (80/10/10,
+# stratified / cluster-aware for sequences). Large local files (>~2 GB) stage slowly
+# over rsync — prefer a private HF repo for those.
+dataset_ref: theoschiff-biie/ace2_binding
+probe_max_retries: 3                         # Max feasibility probe self-repair attempts
+max_post_launch_repairs: 5                    # Max deterministic post-launch auto-repair+relaunch attempts (missing dep / CUDA kernel); 0 disables
+max_training_recovery_attempts: 3             # Max AGENTIC post-canary recovery attempts (Sonnet diagnoses, applies SAFE fix,
+                                              #   reruns canary, relaunches). Runs after deterministic repairs. 0 disables.
+                                              #   UNSAFE fixes (change model/dataset/labels/etc.) stop and ask the user.
+
+# =========================================================================
+
+
+# ============================= Cost / budget =============================
+max_cost_usd: 50.0                           # Hard cap on projected GPU cost (USD); aborted before launch if exceeded
+auto_terminate_on_failure: false             # On terminal failed/escalation, terminate the Lambda instance after the
+                                             #   finalizer syncs artifacts. Default false preserves the warm instance for
+                                             #   cheap re-runs from cached stages; set true to hard-cap idle GPU spend.
+tolerance_threshold: 0.1                     # 3-step gate Step 3. Required, must be in [0, 1]. α = 1 + tolerance_threshold.
+                                             #   ĉ ≤ max_cost_usd                       → launch canary immediately
+                                             #   max_cost_usd < ĉ ≤ α · max_cost_usd     → ask user to confirm overrun, then launch
+                                             #   ĉ > α · max_cost_usd                    → replace candidate, or reject if none left
+                                             # Example: max_cost_usd=100, tolerance_threshold=0.1 → α=1.1; projected $107 prompts user; projected $111 replaces.
+# =========================================================================
+
+
+# ============================= Tracking =============================
+# trackio dashboard Space. Leave null (recommended): CAPO derives
+# "<your-hf-username>/capo-trackio" from `hf whoami` and creates + seeds the
+# Space automatically on your first run (idempotent thereafter). Set an explicit
+# "owner/name" only to override (e.g. a shared org Space).
+trackio_space_id: null
+
+# --- HF Hub checkpoint push (always-on per design) ---
+# The finalizer pushes ONLY checkpoints/best/ to the Hub as a private repo.
+# checkpoints/last/ is retained locally for debugging/resume but never pushed.
+# Namespace defaults to the user behind HF_TOKEN (hf whoami).
+# Shards larger than shard_size use safetensors index files.
+hub_push:
+  enabled: true
+  private: true
+  shard_size: "2GB"
+  namespace: null                              # null → auto from hf whoami
+  repo_name_template: "capo-{run_id}-{which}"  # {which} = best (only)
+# =========================================================================
+
+
+# ============================= Agent =============================
+model_name: claude-opus-4-8                  # Claude model used for the orchestrator agent
+max_turns: 5000                              # Max agent turns before the run is halted
+enable_hf_research: true
+enable_memory: false                         # Episodic memory: read prior runs (runs/runs_index.md) as advisory priors.
+# Strengthen the FIRST/main orchestrator only (default off → behavior unchanged).
+orchestrator_effort: high                    # null | low | medium | high | xhigh | max  — reasoning depth
+orchestrator_skills: all                    # null | all | "skill-a,skill-b"            — skills exposed to it
+# =========================================================================
+
+
+# ============================= CLI ============================= 
+# Controls the capo run interactive layer only. Ignored by
+# scripts/run_fine_tuning.py, which never prompts.
+#   interactive : intent prompt → 4-question questionnaire → run-plan card → launch
+#   auto        : zero prompts; uses dataset_ref + task/task_file below (like run_fine_tuning.py)
+# The --auto flag on capo run overrides this to auto for one invocation.
+cli_mode: interactive
+# =========================================================================
+
+
+# ============================= Run control =============================
+task: null                                   # Inline free-text task description (overrides task_file when set)
+task_file: baselines/prompts/10_species_prompt.md  # File whose contents become the task (relative to repo root)
+run_id: null                                 # Explicit run ID (auto-generated as ft-<slug>-<date>-<hex> if null)
+output_dir: null                             # Local directory for run artifacts (default: runs/<run_id>/)
+restart_from_checkpoint: false               # Resume from latest on-instance checkpoint; requires run_id (manual mode)
+
+# Resume a previous run.
+# Only used when restart_from_checkpoint: true above. In that case, set this
+# to a run_id to short-circuit everything else: state.json is read from
+# runs/<run_id>/state.json, the orchestrator is reconstructed, and training
+# resumes from the latest remote checkpoint (all other fields ignored).
+# If restart_from_checkpoint is false, this is ignored and a fresh run starts.
+# Leave null for a fresh run.
+resume: null           # e.g. "ft-esm-20260429"
+# =========================================================================
+
+
+# ======================= Context compaction (case file + rolling tail) ===========================
+# Compresses Phase A's long pre-launch trace into a structured case file that
+# the Phase C finalizer reads as a preamble. See src/capo/compaction/.
+compaction_enabled: true                     # Master switch
+compaction_threshold_input_tokens: 80000     # Trigger when last call's input tokens exceed this
+compaction_keep_recent_messages: 5           # Rolling tail kept verbatim for the next phase
+# =========================================================================
