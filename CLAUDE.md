@@ -118,7 +118,7 @@ baselines/                      Experiment baselines (claude/, open-code/, slm-v
 | Key | Model | Skills | Role |
 |-----|-------|--------|------|
 | `memory-consultant` | Haiku | — | Scans `runs/runs_index.md` frontmatters (progressive disclosure), reads 0–3 most relevant prior `RUN_REPORT.md` bodies, writes advisory `reports/prior_runs.md`. Read-only on the index/reports; the only file it writes is `prior_runs.md`. |
-| `model-selector` | Haiku | `model-selection` | Picks best PLM + fine-tune strategy from registry |
+| `model-selector` | Sonnet | `model-selection` | Picks best PLM + fine-tune strategy from registry |
 | `lambda-session-manager` | Haiku | `lambda-session`, `lambda-cloud-connection` | Full Lambda GPU workflow: launch, SSH, run, retrieve |
 | `cloud-provider-connector` | Haiku | `cost-estimation`, `huggingface-jobs` | Budget-constrained hardware + provider selection |
 | `data-profiler` | Haiku | `profiling-datasets` | 4-stage dataset profiling → profile.json + plots |

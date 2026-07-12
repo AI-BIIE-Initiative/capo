@@ -79,7 +79,7 @@ SUBAGENTS: dict[str, AgentDefinition] = {
             _load_prompt("subagent/system_prompts/model_selector")
         ),
         tools=["Read", "Grep", "Glob", "Bash"],
-        model="claude-haiku-4-5-20251001",
+        model="claude-sonnet-4-6",
         skills=["model-selection"],
         memory="project",
     ),
@@ -137,7 +137,7 @@ SUBAGENTS: dict[str, AgentDefinition] = {
             _load_prompt("subagent/system_prompts/memory_consultant")
         ),
         tools=["Read", "Write", "Bash", "Glob"],
-        model="claude-haiku-4-5-20251001",
+        model="claude-sonnet-4-6",
         skills=[],
         memory="project",
     ),
