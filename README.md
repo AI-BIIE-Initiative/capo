@@ -20,7 +20,7 @@ The worked example throughout this repo is RBD–ACE2 binding prediction from ye
 
 CAPO is organised into three blocks, primed by episodic memory:
 
-- **Episodic memory (Phases -2 / 6).** Every completed run writes a scientific `RUN_REPORT.md` and registers its frontmatter in a cross-run index (`runs/runs_index.md`). Before each new run, a memory-consultant agent scans that index, selectively loads the few most relevant past reports (progressive disclosure) and writes advisory priors that prime the downstream pre-launch agents. Priors are never authoritative, current-run artifacts override them on conflict.
+- **Episodic memory (Pre-run /Phase 6).** Every completed run writes a scientific `RUN_REPORT.md` and registers its frontmatter in a cross-run index (`runs/runs_index.md`). Before each new run, a memory-consultant agent scans that index, selectively loads the few most relevant past reports (progressive disclosure) and writes advisory priors that prime the downstream pre-launch agents. Priors are never authoritative, current-run artifacts override them on conflict.
 - **Profiling & model selection (Phases 0–2).** A data agent extracts the biological sequence, removes assay-specific regions, filters invalid records, translates nucleotide sequences when required and reports class balance and length statistics. In parallel, model-selection and infrastructure agents rank PLM configurations by task fit, expected cost and hardware feasibility.
 - **Compute-aware admission control (Phase 3).** A three-step gate runs before any training launch: (1) script + schema validation, (2) an empirical feasibility probe at p99-length on the target GPU (forward, then forward+backward), (3) a projected-cost check against `max_cost_usd`. Failures route to repair, replace, reject or escalate.
 - **Monitored training, evaluation & finalisation (Phases 4–6).** Training is launched under `nohup` inside a persistent `capo_remote` tmux session. A concurrent Haiku health monitor polls remote state read-only (60s for the first 15 min, then every 5 min), parses metrics and alerts and writes `reports/health/history.jsonl`. On terminal state, artifacts are synced back and the finalizer writes `final_summary.json`.
@@ -124,8 +124,8 @@ python scripts/run_raw_data_processing.py --config scripts/configs/raw_data_proc
 
 | Phase | Action |
 |---|---|
-| -2 | Consult episodic memory — scan `runs/runs_index.md`, load the 0–3 most relevant prior `RUN_REPORT.md` bodies, write advisory priors to `reports/prior_runs.md` |
-| -1 | Do research on HuggingFace - find training datasets, eval benchmarks, model hyperparameters and write them in `research_findings.json` |
+| Pre-run | Consult episodic memory — scan `runs/runs_index.md`, load the 0–3 most relevant prior `RUN_REPORT.md` bodies, write advisory priors to `reports/prior_runs.md` |
+| Pre-run | Do research on HuggingFace - find training datasets, eval benchmarks, model hyperparameters and write them in `research_findings.json` |
 | 0 | Secure GPU — attach a running instance or provision a new one (budget-aware) |
 | 1 | Profile dataset — 4-stage pipeline producing `profile.json` and plots |
 | 2 | Write `probe.py`, `train.py`, `eval.py` and rsync to the instance |
@@ -163,8 +163,8 @@ runs/<run_id>/
 ├── configs/                    # training.yaml, evaluation.yaml, experiment.yaml, …
 ├── src/                        # canonical training / eval source
 ├── reports/
-│   ├── prior_runs.md           # advisory priors (Phase -2, selected past runs)
-│   ├── research_findings.json  # HF Hub research (Phase -1)
+│   ├── prior_runs.md           # advisory priors (Pre-run, selected past runs)
+│   ├── research_findings.json  # HF Hub research (Pre-run)
 │   ├── model_selection.json    # candidate PLMs + chosen recipe
 │   ├── handoff.json            # ssh_alias, pid, trackio_url, launched_at
 │   ├── trackio_check.json      # verified trackio seeding (truthful, pre-handoff)
