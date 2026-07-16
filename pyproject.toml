@@ -63,7 +63,16 @@ capo = "capo.cli.app:main"
 openai = ["openai>=1.0.0"]
 anthropic = ["anthropic>=0.40.0"]
 azure = ["openai>=1.0.0"]
+
+[dependency-groups]
+# Installed into .venv by default on `uv sync` (PEP 735), so `uv run pytest`
+# always uses THIS project's interpreter. A bare `pytest` on PATH can resolve
+# to a different environment (e.g. conda base) that has a stale editable
+# `capo` install and an older claude-agent-sdk — always run via `uv run`.
 dev = ["pytest", "ruff", "mypy"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
 
 
 [tool.autoimmunolab.apt]
